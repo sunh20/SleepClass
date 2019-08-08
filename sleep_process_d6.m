@@ -1,15 +1,15 @@
 %% Sleep data processing pipeline
 % Frequency band power analysis between sleep + wake data sets
 % subject a0f66459, day 6
+clear all; close all; clc
 
 %% options
 plot_on = 1;
 save_on = 1;
 
 %% load raw data
-clear all; close all; clc
-
 addpath('ecog')
+addpath('mat_tools')
 filename = 'processed_a0f66459_6.h5';
 
 info = h5info(filename);
@@ -24,7 +24,7 @@ end
 
 fs = double(data.f_sample);
 
-clearvars -except data info filename fs
+clearvars -except data datasets filename fs plot_on save_on
 
 %% separate out grid channels (1-64) and sleep vs. wake (1 hour each)
 % remove first column - no data there
@@ -61,6 +61,14 @@ if plot_on == 1
     linkaxes([ax1 ax2],'xy')
 end
 
+%%
+% id channel 37 as bad - remove from set
+chans = 1:64;
+chans(37) = [];
+
+data_sleep(:,37) = [];
+data_wake(:,37) = [];
+
 %% reshape into 20 trials 
 three_m = 3*60*fs;      % three min segments
 t_split = t(1:three_m); 
@@ -86,45 +94,50 @@ clear idx1 idx2 three_m trial data
 
 %% get_power_bands
 % for each trial, get the mean band + ste + save it to a vector
-% end vector wil be 20 x 5
+% end vector wil be 6 x 20
 
-P_sleep = zeros(20,5); % 20 trials, 5 power bands
-P_wake = zeros(20,5);
+P_sleep = zeros(6,20); % 20 trials, 6 power bands
+P_wake = zeros(6,20);
 
 for tr = 1:20
     tic
     test_sleep = squeeze(data_sleep_split(:,:,tr));
     test_wake = squeeze(data_wake_split(:,:,tr));
 
-    P_sleep(tr,:) = get_power_bands(test_sleep,fs);
-    P_wake(tr,:) = get_power_bands(test_wake,fs);
+    P_sleep(:,tr) = get_power_bands(test_sleep,fs);
+    P_wake(:,tr) = get_power_bands(test_wake,fs);
     
     fprintf('completed trial %d: %.2f seconds\n',tr,toc)
 end
-
+disp('finished calculating power bands')
 %% stats
 
-mean_P_sleep = mean(P_sleep);
-mean_P_wake = mean(P_wake);
-ste_P_sleep = std(P_sleep)/length(P_sleep);
-ste_P_wake = std(P_wake)/length(P_wake);
-[hyp, p_val] = ttest(P_sleep,P_wake);
+P_sleep_mean = mean(P_sleep,2);
+P_wake_mean = mean(P_wake,2);
+P_sleep_ste = std(P_sleep,[],2)/length(P_sleep);
+P_wake_ste = std(P_wake,[],2)/length(P_wake);
+[hyp, pval] = ttest(P_sleep',P_wake');
 
 % plot 
 figure;
-bar([mean_P_sleep' mean_P_wake'])
+bar([P_sleep_mean, P_wake_mean])
 hold on
 xlabel('Frequency bins')
-xticklabels(["\delta (1-4)","\theta (4-7)","\alpha (8-13)","\beta (13-30)","\gamma (30-70)"])
+xticklabels(["\delta (1-4)","\theta (4-7)","\alpha (8-13)",...
+                "\beta (13-30)","\gamma (30-70)","h\gamma (70-200)"])
 ylabel('Band Power')
 title('Mean power across frequency bands')
 
-
-errorbar_sig(mean_P_sleep',mean_P_wake',ste_P_sleep',ste_P_wake',hyp,p_val)
+errorbar_sig(P_sleep_mean,P_wake_mean,P_sleep_ste,P_wake_ste,hyp,pval)
 legend('sleep','wake')
 
 %% save workspace
 
 if save_on == 1
-    save('a0f66459_d6_analysis.mat')
+    disp('Preparing to save, make sure you save any figures you want!!')
+    pause
+    disp('Saving to file...')
+    close all
+    clear ax1 ax2
+    save('a0f66459_d6_analysis.mat','-v7.3')
 end

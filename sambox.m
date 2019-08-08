@@ -118,6 +118,7 @@ data_sleep(:,37) = [];
 data_wake(:,37) = [];
 
 %% reshape into 20 trials 
+% generalize to reshape into custom windows
 three_m = 3*60*fs;      % three min segments
 t_split = t(1:three_m); 
 data_sleep_split = zeros(length(t_split),length(chans),20);
