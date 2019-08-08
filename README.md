@@ -1,2 +1,2 @@
-# ecog_sleep
-Classifying sleep stages using ECoG Signals 
+# SleepClass 
+Automated classification of sleep stages from ECoG Signals 
