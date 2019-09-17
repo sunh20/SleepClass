@@ -5,7 +5,7 @@ clear all; close all; clc
 
 %% options
 plot_on = 1;
-save_on = 1;
+save_on = 0;
 
 %% load raw data
 addpath('ecog')
