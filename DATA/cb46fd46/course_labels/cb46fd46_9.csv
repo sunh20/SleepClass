@@ -1,0 +1,7 @@
+datafile,label,start_vid,start_t,end_vid,end_t
+cb46fd46_9,sleep,79,0,97,120
+cb46fd46_9,sleep,221,0,280,120
+cb46fd46_9,sleep,292,0,299,120
+cb46fd46_9,sleep,500,0,652,120
+cb46fd46_9,sleep,657,0,686,120
+cb46fd46_9,talk,177,0,199,120
